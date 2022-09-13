@@ -1,4 +1,4 @@
-package pr
+package com.pr
 
 import kotlinx.serialization.Serializable
 

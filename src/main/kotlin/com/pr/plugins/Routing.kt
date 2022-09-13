@@ -1,4 +1,4 @@
-package pr.plugins
+package com.pr.plugins
 
 import io.ktor.server.routing.*
 import io.ktor.http.*
