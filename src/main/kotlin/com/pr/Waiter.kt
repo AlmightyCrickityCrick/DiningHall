@@ -1,4 +1,4 @@
-package pr
+package com.pr
 
 import com.pr.OrderManager
 import kotlinx.serialization.json.Json
@@ -49,7 +49,7 @@ class Waiter:Thread() {
                 return table.tableList[i]
             }
         }
-        if(waiterLock.isLocked)waiterLock.unlock()
+        if(waiterLock.isLocked) waiterLock.unlock()
         return null
     }
     //Check if no food for tables where order taken has arrived
@@ -67,7 +67,7 @@ class Waiter:Thread() {
 
     }
 // Function to send order to Kitchen
-    fun sendOrder(ord:Order){
+    fun sendOrder(ord: Order){
     //  Turn into Json
         var serilizedOrder = Json.encodeToString(Order.serializer(), ord)
     //Create HTTP client

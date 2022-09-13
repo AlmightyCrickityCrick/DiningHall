@@ -1,7 +1,7 @@
 package com.pr
 
 import Constants
-import pr.Order
+import com.pr.Order
 
 class OrderManager:Thread() {
     var menu = Constants.getMenu()

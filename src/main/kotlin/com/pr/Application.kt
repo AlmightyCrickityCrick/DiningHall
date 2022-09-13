@@ -1,6 +1,7 @@
-package pr
+package com.pr
 
 import com.pr.OrderManager
+import com.pr.plugins.configureSerialization
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -9,7 +10,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
-import pr.plugins.*
+import com.pr.plugins.*
 import java.util.concurrent.locks.ReentrantLock
 
 var manager = OrderManager()

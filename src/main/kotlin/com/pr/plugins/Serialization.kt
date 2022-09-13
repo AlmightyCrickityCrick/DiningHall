@@ -1,4 +1,4 @@
-package pr.plugins
+package com.pr.plugins
 
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.plugins.contentnegotiation.*

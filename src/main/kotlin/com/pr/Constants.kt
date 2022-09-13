@@ -1,4 +1,4 @@
-import pr.Food
+import com.pr.Food
 
 object Constants{
     val NR_OF_TABLES = 10

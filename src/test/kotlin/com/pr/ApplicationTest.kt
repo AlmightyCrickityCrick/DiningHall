@@ -1,5 +1,6 @@
-package pr
+package com.pr
 
+import com.pr.plugins.configureRouting
 import io.ktor.server.routing.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
