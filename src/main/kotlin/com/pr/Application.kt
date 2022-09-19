@@ -1,6 +1,5 @@
 package com.pr
 
-import com.pr.OrderManager
 import com.pr.plugins.configureSerialization
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -11,13 +10,14 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 import com.pr.plugins.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 
-var manager = OrderManager()
-var tableMapping = HashMap<Int, Int>()
+var tables = ArrayList<Table>()
 var waiterLock = ReentrantLock()
 var servingLock = ReentrantLock()
-var finishedOrderList = ArrayList<FinishedOrder>()
+
+var finishedOrderList = ConcurrentHashMap<Int,FinishedOrder>()
 
 fun main() {
     embeddedServer(Netty, port = 8080) {
@@ -30,7 +30,7 @@ fun main() {
                 val finOrd = Json.decodeFromString(FinishedOrder.serializer(), rawOrd)
                 println("Order ${finOrd.order_id} for ${finOrd.table_id} via ${finOrd.waiter_id} has arrived")
                 //Add finished order to the list of all finished orders
-                finishedOrderList.add(finOrd)
+                finishedOrderList.put(finOrd.table_id,finOrd)
                 //Answers the server with ok
                 call.respondText("Okay", status= HttpStatusCode.Created)
 
@@ -43,6 +43,10 @@ fun main() {
         w.setId(i)
         waiters.add(w)
     }
-    manager.start()
+    for (i in 0..Constants.NR_OF_TABLES - 1){
+        tables.add(Table())
+        tables[i].setTabId(i)
+    }
     for (w in waiters) w.start()
+    for(t in tables) t.start()
 }

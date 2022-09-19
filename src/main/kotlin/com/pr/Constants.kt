@@ -6,6 +6,8 @@ object Constants{
     val NR_OF_MAXFOOD = 10
     val TIME_UNIT = 1000
     val KITCHEN_URL = "http://kitchen-container:8081"
+    val MENU = getMenu()
+
 
     fun getMenu():ArrayList<Food>{
         var foods= ArrayList<Food>()

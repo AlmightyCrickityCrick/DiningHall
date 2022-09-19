@@ -1,6 +1,6 @@
 package com.pr
 
-import com.pr.OrderManager
+import Constants
 import kotlinx.serialization.json.Json
 import io.ktor.client.*
 import io.ktor.client.HttpClient
@@ -10,6 +10,7 @@ import kotlinx.coroutines.*
 
 class Waiter:Thread() {
     var waiter_id = 0
+    var tablesWaiting = ArrayList<Int>()
     fun setId(id : Int){
         this.waiter_id = id
     }
@@ -22,48 +23,42 @@ class Waiter:Thread() {
     fun waitTables(){
         while(true) {
             //If waiter has taken order from a table checks if  it hasn't come from kitchen
-            if (waiter_id in tableMapping.values) checkOrderStatus()
+            if (tablesWaiting.size != 0) checkOrderStatus()
             //Checks if there are no new orders in order manager
-            var order = findOrder(manager)
-            //If it finds order sleeps for 2-4 units and then sends order to kitchen
-            if (order != null) {
-                sleep((2 * Constants.TIME_UNIT..4 * Constants.TIME_UNIT).random().toLong())
-                sendOrder(order)
-            }
+            var order = findOrder()
         }
     }
     //Goes through the tables with orders to check if there are no new orders
-    fun findOrder(table: OrderManager): Order? {
+    fun findOrder() {
         //Locks the access of other Threads (Slow, must be updated)
         waiterLock.lock()
-        for (i in 0..table.tableList.size - 1) {
-            // If the current table does not have order, continue
-            if (table.tableList[i] == null) continue
+        for (i in 0..tables.size - 1) {
             //If table has order, check if it had a waiter assigned to it
-            if (table.tableList[i]?.waiter_id == null) {
+            if (tables[i].tableState.get()== 1) {
+                tables[i].tableState.set(2)
+                tables[i].order?.waiter_id = waiter_id
                 println("Waiter $waiter_id picked order for table $i")
                 //If not then pick up order and be paired with the table number in tableMapping
-                table.tableList[i]?.waiter_id = waiter_id
-                tableMapping[i] = waiter_id
+                tablesWaiting.add(i)
                 waiterLock.unlock()
-                return table.tableList[i]
+                sleep((2 * Constants.TIME_UNIT..4 * Constants.TIME_UNIT).random().toLong())
+                //If it finds order sleeps for 2-4 units and then sends order to kitchen
+                tables[i].order?.let { sendOrder(it) }
+                return
             }
         }
-        if(waiterLock.isLocked) waiterLock.unlock()
-        return null
+        waiterLock.unlock()
+        return
     }
     //Check if no food for tables where order taken has arrived
     fun checkOrderStatus(){
-        servingLock.lock()
-        var finishedListCopy = finishedOrderList
-        for (ord in finishedListCopy)
-            if( waiter_id == ord.waiter_id){
-                finishedOrderList.remove(ord)
+        for (ord in tablesWaiting)
+            if( finishedOrderList.containsKey(ord)){
                 //If order arrived, serve it
-                serveOrder(ord.table_id, ord)
-                break
+                finishedOrderList?.get(ord)?.let { serveOrder(ord, it) }
+                finishedOrderList.remove(ord)
+                return
             }
-        servingLock.unlock()
 
     }
 // Function to send order to Kitchen
@@ -85,11 +80,12 @@ class Waiter:Thread() {
 
     //Serve the prepared order to the client and remove the order from the table-waiter map and the table itself.
     fun serveOrder(table: Int, ord: FinishedOrder){
-        if (manager.tableList[table]!!.order_id  == ord.order_id) {
-            ord.cooking_time = (System.currentTimeMillis() - ord.pick_up_time).toInt()
-            println("Order ${ord.order_id} has been served")
-            manager.tableList[table] = null
-            tableMapping.remove(table)
+        if (tables[table].order?.order_id  == ord.order_id) {
+            ord.cooking_time = ((System.currentTimeMillis() - ord.pick_up_time).toInt())/Constants.TIME_UNIT
+            tablesWaiting.remove(table)
+            println("Order ${ord.order_id} has been served in ${ord.cooking_time} t.u.")
+            tables[table].order = null
+            tables[table].tableState.set(0)
 
         }}
 }
