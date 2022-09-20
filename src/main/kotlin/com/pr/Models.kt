@@ -14,4 +14,4 @@ data class CookingDetail(val food_id:Int, val cook_id:Int)
 
 @Serializable
 data class FinishedOrder(val order_id : Int, var items: ArrayList<Int>, var priority:Int, var max_wait : Int, var pick_up_time : Long,
-                         var cooking_time:Int, var table_id: Int, var waiter_id: Int, var cooking_details: ArrayList<CookingDetail>)
+                         var cooking_time:Long, var table_id: Int, var waiter_id: Int, var cooking_details: ArrayList<CookingDetail>)

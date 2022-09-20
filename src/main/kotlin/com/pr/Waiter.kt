@@ -43,6 +43,7 @@ class Waiter:Thread() {
                 waiterLock.unlock()
                 sleep((2 * Constants.TIME_UNIT..4 * Constants.TIME_UNIT).random().toLong())
                 //If it finds order sleeps for 2-4 units and then sends order to kitchen
+                tables[i].order?.pick_up_time= System.currentTimeMillis()
                 tables[i].order?.let { sendOrder(it) }
                 return
             }
@@ -81,7 +82,7 @@ class Waiter:Thread() {
     //Serve the prepared order to the client and remove the order from the table-waiter map and the table itself.
     fun serveOrder(table: Int, ord: FinishedOrder){
         if (tables[table].order?.order_id  == ord.order_id) {
-            ord.cooking_time = ((System.currentTimeMillis() - ord.pick_up_time).toInt())/Constants.TIME_UNIT
+            ord.cooking_time = (((System.currentTimeMillis() - ord.pick_up_time).toInt())/Constants.TIME_UNIT).toLong()
             tablesWaiting.remove(table)
             println("Order ${ord.order_id} has been served in ${ord.cooking_time} t.u.")
             tables[table].order = null
