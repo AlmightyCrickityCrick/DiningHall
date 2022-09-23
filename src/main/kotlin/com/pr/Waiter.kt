@@ -83,6 +83,7 @@ class Waiter:Thread() {
     fun serveOrder(table: Int, ord: FinishedOrder){
         if (tables[table].order?.order_id  == ord.order_id) {
             ord.cooking_time = (((System.currentTimeMillis() - ord.pick_up_time).toInt())/Constants.TIME_UNIT).toLong()
+            rating.addRating(ord.max_wait, ord.cooking_time)
             tablesWaiting.remove(table)
             println("Order ${ord.order_id} has been served in ${ord.cooking_time} t.u.")
             tables[table].order = null
