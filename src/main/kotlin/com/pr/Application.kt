@@ -16,6 +16,7 @@ import java.util.concurrent.locks.ReentrantLock
 var tables = ArrayList<Table>()
 var waiterLock = ReentrantLock()
 var servingLock = ReentrantLock()
+var rating = Rating()
 
 var finishedOrderList = ConcurrentHashMap<Int,FinishedOrder>()
 
@@ -37,6 +38,7 @@ fun main() {
             }
         }
     }.start(wait = false)
+    rating.start()
     var waiters = ArrayList<Waiter>()
     for (i in 1..Constants.NR_OF_WAITERS){
         var w = Waiter()
