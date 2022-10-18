@@ -1,11 +1,14 @@
 import com.pr.Food
 
 object Constants{
-    val NR_OF_TABLES = 10
-    val NR_OF_WAITERS = 4
-    val NR_OF_MAXFOOD = 10
-    val TIME_UNIT = 1000
-    val KITCHEN_URL = "http://kitchen-container:8081"
+    var NR_OF_TABLES = 10
+    var NR_OF_WAITERS = 4
+    var NR_OF_MAXFOOD = 5
+    var TIME_UNIT = 1000
+    //val KITCHEN_URL = "http://kitchen-container:8081"
+    val KITCHEN_URL = "http://kitchen-container1:8083"
+    //var KITCHEN_URL = ""
+
     val MENU = getMenu()
 
 

@@ -25,7 +25,10 @@ class Waiter:Thread() {
             //If waiter has taken order from a table checks if  it hasn't come from kitchen
             if (tablesWaiting.size != 0) checkOrderStatus()
             //Checks if there are no new orders in order manager
-            var order = findOrder()
+            if(orderTaken.availablePermits() > 0){
+                orderTaken.acquire()
+                var order = findOrder()
+            }
         }
     }
     //Goes through the tables with orders to check if there are no new orders
@@ -41,13 +44,14 @@ class Waiter:Thread() {
                 //If not then pick up order and be paired with the table number in tableMapping
                 tablesWaiting.add(i)
                 waiterLock.unlock()
-                sleep((2 * Constants.TIME_UNIT..4 * Constants.TIME_UNIT).random().toLong())
+                sleep((2 * rest.time_unit ..4 * rest.time_unit).random().toLong())
                 //If it finds order sleeps for 2-4 units and then sends order to kitchen
                 tables[i].order?.pick_up_time= System.currentTimeMillis()
                 tables[i].order?.let { sendOrder(it) }
                 return
             }
         }
+        orderTaken.release()
         waiterLock.unlock()
         return
     }
@@ -56,6 +60,7 @@ class Waiter:Thread() {
         for (ord in tablesWaiting)
             if( finishedOrderList.containsKey(ord)){
                 //If order arrived, serve it
+                orderTaken.release()
                 finishedOrderList?.get(ord)?.let { serveOrder(ord, it) }
                 finishedOrderList.remove(ord)
                 return
@@ -72,22 +77,23 @@ class Waiter:Thread() {
     //Send order to kitchen(HttpClient requires that requests be done either in couroutine or suspend function)
         runBlocking {
             val job = launch {
-                val resp: HttpResponse = client.post(Constants.KITCHEN_URL+"/order") {
+                val resp: HttpResponse = client.post(rest.kitchen_url+"/order") {
                     setBody(serilizedOrder)
                 }
             }}
         client.close()
+        foodsInWaitingList.incrementAndGet()
     }
 
     //Serve the prepared order to the client and remove the order from the table-waiter map and the table itself.
     fun serveOrder(table: Int, ord: FinishedOrder){
         if (tables[table].order?.order_id  == ord.order_id) {
-            ord.cooking_time = (((System.currentTimeMillis() - ord.pick_up_time).toInt())/Constants.TIME_UNIT).toLong()
+            ord.cooking_time = (((System.currentTimeMillis() - ord.pick_up_time).toInt())/rest.time_unit).toLong()
             rating.addRating(ord.max_wait, ord.cooking_time)
             tablesWaiting.remove(table)
             println("Order ${ord.order_id} has been served in ${ord.cooking_time} t.u.")
             tables[table].order = null
             tables[table].tableState.set(0)
-
+            foodsInWaitingList.decrementAndGet()
         }}
 }

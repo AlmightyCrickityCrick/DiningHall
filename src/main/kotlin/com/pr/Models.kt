@@ -2,6 +2,22 @@ package com.pr
 
 import kotlinx.serialization.Serializable
 
+@Serializable
+data class Self(var nr_of_tables: Int,
+    var nr_of_waiters: Int,
+var max_foods: Int,
+var time_unit: Int,
+var kitchen_url: String,
+var dining_url : String,
+var dining_port: Int,
+var kitchen_port: Int,
+var kitchen_ordering: String,
+var restaurant_name: String,
+var restaurant_id : Int,
+var food_ordering_url: String,
+var cook_prof: Int,
+var cook_ap:Int)
+@Serializable
 data class Food(val id: Int, val name : String, val preparationTime : Int, val complexity: Int, val cookingApparatus: String? =null){}
 
 
@@ -10,8 +26,16 @@ data class Order (val order_id : Int, var items: ArrayList<Int>, var priority:In
                   var pick_up_time : Long?  = null, var table_id: Int? = null, var waiter_id: Int? = null)
 
 @Serializable
-data class CookingDetail(val food_id:Int, val cook_id:Int)
+data class CookingDetail(val food_id:Int, val cook_id:Int? = null)
 
 @Serializable
 data class FinishedOrder(val order_id : Int, var items: ArrayList<Int>, var priority:Int, var max_wait : Int, var pick_up_time : Long,
-                         var cooking_time:Long, var table_id: Int, var waiter_id: Int, var cooking_details: ArrayList<CookingDetail>)
+                         var cooking_time:Long, var table_id:Int?=null, var waiter_id: Int?=null, var cooking_details: ArrayList<CookingDetail>)
+
+@Serializable
+data class Restaurant(val restaurant_id:Int, val name:String, val address:String, val menuItems:Int, val menu:ArrayList<Food>, var rating: Float)
+@Serializable
+data class RestaurantOrder(val items: ArrayList<Int>, val priority: Int, val max_wait: Int, val created_time: Long)
+
+@Serializable
+data class RestaurantOrderResponse(val restaurant_id: Int, val order_id: Int, val estimated_waiting_time: Int, val created_time: Long, val registered_time: Long)
