@@ -39,3 +39,18 @@ data class RestaurantOrder(val items: ArrayList<Int>, val priority: Int, val max
 
 @Serializable
 data class RestaurantOrderResponse(val restaurant_id: Int, val order_id: Int, val estimated_waiting_time: Int, val created_time: Long, val registered_time: Long)
+
+@Serializable
+data class MenuResource(val foods : ArrayList<Food>)
+
+//Response when client checks if order ready
+@Serializable
+data class FinishedFoodOrderingOrder(val order_id:Int, var is_ready: Boolean, var estimated_waiting_time: Int, val priority: Int, val max_wait: Int, val created_time: Long, val registered_time: Long, var preparedTime:Long, var cooking_time: Long, var cooking_details: ArrayList<CookingDetail>?=null)
+
+//Request from client to rate restaurant
+@Serializable
+data class ClientRating(val order_id: Int, val rating: Int, val estimated_waiting_time: Int, val waiting_time:Int)
+
+//Response to client after rating restaurant
+@Serializable
+data class ClientRatingResponse(val restaurant_id: Int, val restaurant_avg_rating:Float, var prepared_orders:Int)

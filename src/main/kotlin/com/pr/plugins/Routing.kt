@@ -16,14 +16,50 @@ import kotlinx.serialization.json.Json
 
 fun Application.configureRouting() {
     routing {
-        post("/v2/order") {
-            var data = call.receive<String>()
-            val ord = Json.decodeFromString(RestaurantOrder.serializer(), data)
-            var id = (1..9999).random()
-            var time = System.currentTimeMillis()
-            call.respond(Json.encodeToString(RestaurantOrderResponse.serializer(), RestaurantOrderResponse(rest.restaurant_id, id, getWaitingTime(ord.items), ord.created_time, time)))
-            println("Received order from client $data")
-            sendOrderAuto(Order(id, ord.items, ord.priority, ord.max_wait, time, null, null))
+        route("/v2") {
+            post("/order") {
+                var data = call.receive<String>()
+                val ord = Json.decodeFromString(RestaurantOrder.serializer(), data)
+                var id = (1..9999).random()
+                var time = System.currentTimeMillis()
+                var estim = getWaitingTime(ord.items)
+
+                call.respond(
+                    Json.encodeToString(
+                        RestaurantOrderResponse.serializer(),
+                        RestaurantOrderResponse(
+                            rest.restaurant_id,
+                            id,
+                            estim,
+                            ord.created_time,
+                            time
+                        )
+                    )
+                )
+                println("Received order from client $data")
+                sendOrderAuto(Order(id, ord.items, ord.priority, ord.max_wait, time, null, null))
+                foodDeliveryFinishedOrder.put(id, FinishedFoodOrderingOrder(id, false, estim, ord.priority, ord.max_wait, ord.created_time, time, 0, 0, null ))
+            }
+            get("/order/{id}") {
+                var ord :FinishedFoodOrderingOrder = call.parameters["id"]?.let { it1 ->
+                    foodDeliveryFinishedOrder.get(
+                        it1.toInt())
+                }!!
+                if(ord.is_ready){
+                    call.respond(Json.encodeToString(FinishedFoodOrderingOrder.serializer(), ord))
+                    foodDeliveryFinishedOrder.remove(ord.order_id)
+                } else {
+                    ord.estimated_waiting_time = (ord.max_wait * 0.1).toInt()
+                    call.respond(Json.encodeToString(FinishedFoodOrderingOrder.serializer(), ord))
+                }
+
+            }
+            post("/rating") {
+                var data = call.receive<String>()
+                var rat = Json.decodeFromString(ClientRating.serializer(), data)
+                var currRating = rating.addFoodOrderingrating(rat.rating)
+                call.respond(Json.encodeToString(ClientRatingResponse.serializer(), ClientRatingResponse(rest.restaurant_id, currRating.first, currRating.second)))
+            }
         }
     }
 }
@@ -36,7 +72,7 @@ fun getWaitingTime(items:ArrayList<Int>):Int{
     var E = foodsInWaitingList.get()
     var F = items.size
     foodsInWaitingList.incrementAndGet()
-    for (i in items) if (Constants.MENU[i - 1].cookingApparatus == null) A++ else C++
+    for (i in items) if (Constants.MENU[i - 1].cookingApparatus == null) A+= Constants.MENU[i-1].preparationTime else C+= Constants.MENU[i-1].preparationTime
 
     println(("Expected time for order, " +( A/B+C/D) * (E+F)/F))
     return (A/B+C/D) * (E+F)/F

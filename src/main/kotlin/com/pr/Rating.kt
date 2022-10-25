@@ -5,7 +5,7 @@ class Rating:Thread() {
     var currentRating:Float = 0f
 
 
-    fun calculateRating(){
+    fun calculateRating():Pair<Float, Int>{
         currentRating = 0f
         var count = 0
         for (i in ratings) {
@@ -13,6 +13,7 @@ class Rating:Thread() {
             count++
         }
         println(currentRating/count)
+        return Pair(currentRating/count, count)
     }
 
     fun addRating(max:Int, actual:Long){
@@ -23,8 +24,13 @@ class Rating:Thread() {
         else if (actual <= max*1.4)ratings.add(1)
         else ratings.add(0)
 
-        calculateRating()
+        var x = calculateRating()
 
+    }
+
+    fun addFoodOrderingrating(rating:Int):Pair<Float, Int>{
+        ratings.add(rating)
+        return calculateRating()
     }
 
 }

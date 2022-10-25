@@ -24,21 +24,20 @@ import java.util.concurrent.locks.ReentrantLock
 
 var tables = ArrayList<Table>()
 var waiterLock = ReentrantLock()
-var servingLock = ReentrantLock()
 var rating = Rating()
-var orderTaken = Semaphore(4)
+lateinit var orderTaken:Semaphore
 
 var finishedOrderList = ConcurrentHashMap<Int,FinishedOrder>()
 lateinit var rest :Self
 var client = HttpClient()
 var foodsInWaitingList = AtomicInteger(0)
-var foodDeliveryFinishedOrder = ConcurrentHashMap<Int,FinishedOrder>()
-
+var foodDeliveryFinishedOrder = ConcurrentHashMap<Int,FinishedFoodOrderingOrder>()
 
 fun main() {
-    var conf = File("config/config.json").inputStream().readBytes().toString(Charsets.UTF_8)
+    var conf = File("config1/config.json").inputStream().readBytes().toString(Charsets.UTF_8)
     rest = Json{coerceInputValues = true}.decodeFromString(Self.serializer(), conf)
     println(rest)
+    orderTaken = Semaphore(rest.nr_of_tables / 3)
     rating.start()
     embeddedServer(Netty, port = rest.dining_port) {
         configureSerialization()
@@ -57,7 +56,10 @@ fun main() {
                 println("Order ${finOrd.order_id} for ${finOrd.table_id} via ${finOrd.waiter_id} has arrived")
                 //Add finished order to the list of all finished orders
                 if(finOrd.table_id != null )finishedOrderList.put(finOrd.table_id!!,finOrd) else {
-                    foodDeliveryFinishedOrder.put(finOrd.order_id, finOrd)
+                    foodDeliveryFinishedOrder[finOrd.order_id]?.cooking_time = finOrd.cooking_time
+                    foodDeliveryFinishedOrder[finOrd.order_id]?.cooking_details = finOrd.cooking_details
+                    foodDeliveryFinishedOrder[finOrd.order_id]?.is_ready = true
+                    foodDeliveryFinishedOrder[finOrd.order_id]?.preparedTime = System.currentTimeMillis()
                     foodsInWaitingList.decrementAndGet()
                 }
                 //Answers the server with ok
