@@ -34,7 +34,7 @@ var foodsInWaitingList = AtomicInteger(0)
 var foodDeliveryFinishedOrder = ConcurrentHashMap<Int,FinishedFoodOrderingOrder>()
 
 fun main() {
-    var conf = File("config1/config.json").inputStream().readBytes().toString(Charsets.UTF_8)
+    var conf = File("config/config.json").inputStream().readBytes().toString(Charsets.UTF_8)
     rest = Json{coerceInputValues = true}.decodeFromString(Self.serializer(), conf)
     println(rest)
     orderTaken = Semaphore(rest.nr_of_tables / 3)
@@ -60,8 +60,8 @@ fun main() {
                     foodDeliveryFinishedOrder[finOrd.order_id]?.cooking_details = finOrd.cooking_details
                     foodDeliveryFinishedOrder[finOrd.order_id]?.is_ready = true
                     foodDeliveryFinishedOrder[finOrd.order_id]?.preparedTime = System.currentTimeMillis()
-                    foodsInWaitingList.decrementAndGet()
                 }
+                foodsInWaitingList.decrementAndGet()
                 //Answers the server with ok
                 call.respondText("Okay", status= HttpStatusCode.Created)
 

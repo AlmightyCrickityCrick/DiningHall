@@ -45,6 +45,7 @@ fun Application.configureRouting() {
                     foodDeliveryFinishedOrder.get(
                         it1.toInt())
                 }!!
+                println("Client came for order ${ord.order_id}")
                 if(ord.is_ready){
                     call.respond(Json.encodeToString(FinishedFoodOrderingOrder.serializer(), ord))
                     foodDeliveryFinishedOrder.remove(ord.order_id)
@@ -57,6 +58,7 @@ fun Application.configureRouting() {
             post("/rating") {
                 var data = call.receive<String>()
                 var rat = Json.decodeFromString(ClientRating.serializer(), data)
+                println("Received Raating from Food Ordering $rat")
                 var currRating = rating.addFoodOrderingrating(rat.rating)
                 call.respond(Json.encodeToString(ClientRatingResponse.serializer(), ClientRatingResponse(rest.restaurant_id, currRating.first, currRating.second)))
             }

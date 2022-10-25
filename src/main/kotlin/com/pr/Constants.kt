@@ -18,7 +18,7 @@ object Constants{
 
 
     fun getMenu():ArrayList<Food>{
-        var conf = File("config1/menu.json").inputStream().readBytes().toString(Charsets.UTF_8)
+        var conf = File("config/menu.json").inputStream().readBytes().toString(Charsets.UTF_8)
         var foods= Json{coerceInputValues = true}.decodeFromString(MenuResource.serializer(), conf).foods
 
         print(foods)
